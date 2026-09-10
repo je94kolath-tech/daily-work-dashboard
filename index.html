@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Daily Work Report">
 <meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Daily Work Report — V5</title>
 <style>
 *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;margin:0;background:#f4f6f8;color:#1f2937;-webkit-text-size-adjust:100%}
@@ -108,7 +111,12 @@ async function shareOut(id){const text=document.getElementById(id).textContent;t
 function generateMorning(){const s=settings(),now=new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});show('morningOut',`☀☀☀☀☀☀☀\nMorning Message\nName:- ${s.name}\nLocation:- ${s.location}\nDate:- ${today()}\nEntry Time:- ${now}${s.live?`\nLive Location:- ${s.live}`:''}`)}
 function generateOKR(){const o=[v('obj1'),v('obj2')].filter(Boolean),k=[v('kr1'),v('kr2')].filter(Boolean),s=settings();data.objectives=o;data.krs=k;save();show('okrOut',`OKR (Objectives and Key Results) Report\n\nDate: ${today()}\nName: ${s.name}\nDesignation: ${s.designation}\nBranch: ${s.branch}\n🪁🪁🪁🪁🪁🪁🪁🪁🪁🪁\nMy work today is to achieve the following\n\n${o.map((x,i)=>`${i+1}. ${x}`).join('\n')}\n\n🪂🪂🪂🪂🪂🪂🪂🪂🪂🪂🪂\nToday My Key results will be\n\n${k.map((x,i)=>`${i+1}. ${x}`).join('\n')}`)}
 function setTime(t){document.getElementById('forcedTime').value=t}
-function generateUpdate(){const notes=v('updateNotes');if(!notes){alert('Enter what you actually worked on first.');return}const s=settings(),tm=v('forcedTime')||new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}),items=notes.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean);data.updates.push({time:tm,notes:items});save();renderHistory();show('updateOut',`♣♣♣♣♣♣\n2 Hour Update\n\nDate: ${today()}\nLocation: ${s.location}\nTime: ${tm}\nName: ${s.name}\nWork Executed:\n\n${items.map((x,i)=>`${i+1}. ${x}`).join('\n')}`);document.getElementById('updateNotes').value=''}
+function generateUpdate(){const notes=v('updateNotes');if(!notes){alert('Enter what you actually worked on first.');return}const s=settings(),tm=v('forcedTime')||new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}),items=notes.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean);data.updates.push({time:tm,notes:items});save();if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+renderHistory();show('updateOut',`♣♣♣♣♣♣\n2 Hour Update\n\nDate: ${today()}\nLocation: ${s.location}\nTime: ${tm}\nName: ${s.name}\nWork Executed:\n\n${items.map((x,i)=>`${i+1}. ${x}`).join('\n')}`);document.getElementById('updateNotes').value=''}
 function generateClosure(){const s=settings(),all=data.updates.flatMap(x=>x.notes),extra=v('closureNotes'),executed=all.length?all:[...data.objectives],approval=[],pending=[],attention=[];if(extra){extra.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean).forEach(x=>{const l=x.toLowerCase();if(l.includes('approval')||l.includes('approve'))approval.push(x);else if(l.includes('pending')||l.includes('tomorrow')||l.includes('follow up'))pending.push(x);else if(l.includes('issue')||l.includes('attention')||l.includes('problem'))attention.push(x);else executed.push(x)})}show('closureOut',`📣📣📣📣📣📣📣📣\n*Vertical Head Evening closure message*\n\nDate: ${today()}\nName: ${s.name}\n\n*Work Executed during the day*\n${executed.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. No additional work recorded.'}\n\n*Assignments send for approval*\n${approval.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}\n\n*Pending works in hand with plan of action*\n${pending.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}\n\n📣📣📣📣📣📣📣📣\n*Matters require Operations Coordinator Attention*\n${attention.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}`)}
 function renderHistory(){const e=document.getElementById('history');e.innerHTML=data.updates.length?data.updates.map(x=>`<div><b>${x.time}</b> — ${x.notes.join(' • ')}</div>`).join(''):'No updates yet.'}
 function clearDay(){if(confirm('Start a new day? This clears today’s activity log and objectives.')){data={date:today(),updates:[],objectives:[],krs:[]};save();location.reload()}}
