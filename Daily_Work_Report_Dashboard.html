@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Daily Work Report">
+<meta name="theme-color" content="#111827">
+<title>Daily Work Report — V5</title>
+<style>
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;margin:0;background:#f4f6f8;color:#1f2937;-webkit-text-size-adjust:100%}
+.wrap{max-width:980px;margin:0 auto;padding:18px 14px 40px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}h1{margin:0;font-size:25px}.sub,.tag{color:#6b7280;font-size:13px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{font-weight:650;font-size:13px;display:block;margin:8px 0 6px}input,textarea{width:100%;border:1px solid #cfd5dd;border-radius:9px;padding:11px;font:inherit;background:#fff;font-size:16px}textarea{min-height:105px;resize:vertical}.btn{border:0;border-radius:9px;padding:11px 14px;font-weight:700;cursor:pointer;background:#111827;color:#fff;margin-top:10px;min-height:42px}.btn.secondary{background:#e5e7eb;color:#111827}.btn.green{background:#166534}.btn.blue{background:#1d4ed8}.btn.small{padding:8px 11px;font-size:13px;min-height:38px}.row{display:flex;gap:8px;flex-wrap:wrap}.out{margin-top:12px;background:#f8fafc;border:1px solid #dfe5ec;border-radius:9px;padding:12px;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.5;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text}.history{font-size:13px;color:#374151}.history div{padding:7px 0;border-bottom:1px solid #eee}.notice{background:#eef6ff;border:1px solid #bfdbfe;border-radius:10px;padding:11px;font-size:13px;margin-top:10px}.success{color:#166534;font-weight:650}.danger{color:#991b1b;font-weight:650}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:flex-start}.top .btn{margin-top:0}.wrap{padding-top:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Daily Work Report</h1><div class="sub">V5 — phone + ThinkPad friendly</div></div>
+    <button class="btn secondary" type="button" onclick="clearDay()">New day</button>
+  </div>
+
+  <div class="notice"><b>How V5 is different:</b> Generate works without internet, Copy has an iPhone/Android fallback, and Share can use the phone's native share sheet (including WhatsApp when available). Your live location is still used only in the Morning Message.</div>
+
+  <div class="card">
+    <h2>⚙️ Profile & Today's Location</h2>
+    <div class="tag">Enter these once each day. The live-location link appears only in the Morning Message.</div>
+    <div class="grid">
+      <div><label>Name</label><input id="name" value="Rishi" autocomplete="name"></div>
+      <div><label>Designation</label><input id="designation" placeholder="Enter your designation"></div>
+      <div><label>Branch</label><input id="branch" value="Mumbai"></div>
+      <div><label>Today's Location</label><input id="dailyLocation" placeholder="e.g. Andheri East, Mumbai"></div>
+      <div class="full"><label>Today's Google Maps 24-hour Live Location Link</label><input id="dailyLive" placeholder="Paste today's Google Maps Share via link here"></div>
+    </div>
+    <button class="btn secondary" type="button" onclick="saveSettings()">Save profile & today's location</button>
+  </div>
+
+  <div class="card">
+    <h2>☀️ 1. Morning Message</h2><div class="tag">Location + today's live-location link are included here only.</div>
+    <button class="btn" type="button" onclick="generateMorning()">Generate</button>
+    <div id="morningOut" class="out" hidden></div>
+    <div id="morningActions" class="row" hidden>
+      <button class="btn green small" type="button" onclick="copyOut('morningOut')">Copy</button>
+      <button class="btn blue small" type="button" onclick="shareOut('morningOut')">Share</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🪁 2. OKR / Task Assignment</h2><div class="tag">Enter only the work assigned to you.</div>
+    <div class="grid">
+      <div><label>Objective 1</label><input id="obj1" placeholder="e.g. Complete bank reconciliation"></div>
+      <div><label>Objective 2</label><input id="obj2" placeholder="e.g. Verify vendor invoices"></div>
+      <div><label>Key Result 1</label><input id="kr1" placeholder="e.g. Reconcile all assigned entries"></div>
+      <div><label>Key Result 2</label><input id="kr2" placeholder="e.g. Complete invoice checking and flag discrepancies"></div>
+    </div>
+    <button class="btn" type="button" onclick="generateOKR()">Generate</button>
+    <div id="okrOut" class="out" hidden></div>
+    <div id="okrActions" class="row" hidden><button class="btn green small" type="button" onclick="copyOut('okrOut')">Copy</button><button class="btn blue small" type="button" onclick="shareOut('okrOut')">Share</button></div>
+  </div>
+
+  <div class="card">
+    <h2>♣️ 3. Two-Hour Update</h2><div class="tag">Enter rough notes in your own words.</div>
+    <label for="updateNotes">What did you execute since the last update?</label>
+    <textarea id="updateNotes" placeholder="e.g. Finished bank reconciliation, checked 25 invoices, called ABC for missing invoice."></textarea>
+    <div class="row">
+      <button class="btn" type="button" onclick="generateUpdate()">Generate current update</button>
+      <button class="btn secondary" type="button" onclick="setTime('11:00 AM')">11 AM</button>
+      <button class="btn secondary" type="button" onclick="setTime('1:00 PM')">1 PM</button>
+      <button class="btn secondary" type="button" onclick="setTime('3:00 PM')">3 PM</button>
+      <button class="btn secondary" type="button" onclick="setTime('5:00 PM')">5 PM</button>
+    </div>
+    <input id="forcedTime" placeholder="Optional: choose a time above or leave blank for current time" style="margin-top:8px">
+    <div id="updateOut" class="out" hidden></div>
+    <div id="updateActions" class="row" hidden><button class="btn green small" type="button" onclick="copyOut('updateOut')">Copy</button><button class="btn blue small" type="button" onclick="shareOut('updateOut')">Share</button></div>
+  </div>
+
+  <div class="card">
+    <h2>♦️ 4. Evening Closure</h2><div class="tag">The dashboard remembers today's objectives and updates on this device.</div>
+    <label for="closureNotes">Anything else to add (approval / pending / attention)?</label>
+    <textarea id="closureNotes" placeholder="e.g. Sent ABC report for approval. XYZ confirmation is pending and I will follow up tomorrow."></textarea>
+    <button class="btn" type="button" onclick="generateClosure()">Generate closure</button>
+    <div id="closureOut" class="out" hidden></div>
+    <div id="closureActions" class="row" hidden><button class="btn green small" type="button" onclick="copyOut('closureOut')">Copy</button><button class="btn blue small" type="button" onclick="shareOut('closureOut')">Share</button></div>
+  </div>
+
+  <div class="card"><h2>Today's activity log</h2><div id="history" class="history">No updates yet.</div></div>
+</div>
+
+<script>
+'use strict';
+const KEY='rishi_daily_work_v5';
+const SETTINGS='rishi_settings_v5';
+let data={date:'',updates:[],objectives:[],krs:[]};
+try{data=JSON.parse(localStorage.getItem(KEY)||'null')||data}catch(e){}
+const today=()=>new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+if(data.date!==today()){data={date:today(),updates:[],objectives:[],krs:[]};save();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
+function v(id){const e=document.getElementById(id);return e?e.value.trim():''}
+function settings(){return{name:v('name')||'Rishi',designation:v('designation'),branch:v('branch')||'Mumbai',location:v('dailyLocation')||'Mumbai',live:v('dailyLive')}}
+function saveSettings(){try{localStorage.setItem(SETTINGS,JSON.stringify(settings()));alert('Saved.');}catch(e){alert('Saved for this page session.')}}
+(function(){try{const s=JSON.parse(localStorage.getItem(SETTINGS)||'null');if(s){['name','designation','branch','dailyLocation','dailyLive'].forEach(k=>{if(s[k]!==undefined){const id=k==='dailyLocation'?'dailyLocation':k==='dailyLive'?'dailyLive':k;document.getElementById(id).value=s[k]}})}}catch(e){}})();
+function show(id,text){const e=document.getElementById(id);e.textContent=text;e.hidden=false;const a=document.getElementById(id.replace('Out','Actions'));if(a)a.hidden=false}
+function copyFallback(text){const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);let ok=false;try{ok=document.execCommand('copy')}catch(e){}document.body.removeChild(ta);return ok}
+async function copyOut(id){const text=document.getElementById(id).textContent;let ok=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);ok=true}}catch(e){}if(!ok)ok=copyFallback(text);if(ok)alert('Copied. Paste it into WhatsApp.');else alert('Copy was blocked by this browser. The message is selectable below — long-press (iPhone/Android) or select and copy (ThinkPad).')}
+async function shareOut(id){const text=document.getElementById(id).textContent;try{if(navigator.share){await navigator.share({text:text});return}}catch(e){if(e&&e.name==='AbortError')return}copyOut(id)}
+function generateMorning(){const s=settings(),now=new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});show('morningOut',`☀☀☀☀☀☀☀\nMorning Message\nName:- ${s.name}\nLocation:- ${s.location}\nDate:- ${today()}\nEntry Time:- ${now}${s.live?`\nLive Location:- ${s.live}`:''}`)}
+function generateOKR(){const o=[v('obj1'),v('obj2')].filter(Boolean),k=[v('kr1'),v('kr2')].filter(Boolean),s=settings();data.objectives=o;data.krs=k;save();show('okrOut',`OKR (Objectives and Key Results) Report\n\nDate: ${today()}\nName: ${s.name}\nDesignation: ${s.designation}\nBranch: ${s.branch}\n🪁🪁🪁🪁🪁🪁🪁🪁🪁🪁\nMy work today is to achieve the following\n\n${o.map((x,i)=>`${i+1}. ${x}`).join('\n')}\n\n🪂🪂🪂🪂🪂🪂🪂🪂🪂🪂🪂\nToday My Key results will be\n\n${k.map((x,i)=>`${i+1}. ${x}`).join('\n')}`)}
+function setTime(t){document.getElementById('forcedTime').value=t}
+function generateUpdate(){const notes=v('updateNotes');if(!notes){alert('Enter what you actually worked on first.');return}const s=settings(),tm=v('forcedTime')||new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}),items=notes.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean);data.updates.push({time:tm,notes:items});save();renderHistory();show('updateOut',`♣♣♣♣♣♣\n2 Hour Update\n\nDate: ${today()}\nLocation: ${s.location}\nTime: ${tm}\nName: ${s.name}\nWork Executed:\n\n${items.map((x,i)=>`${i+1}. ${x}`).join('\n')}`);document.getElementById('updateNotes').value=''}
+function generateClosure(){const s=settings(),all=data.updates.flatMap(x=>x.notes),extra=v('closureNotes'),executed=all.length?all:[...data.objectives],approval=[],pending=[],attention=[];if(extra){extra.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean).forEach(x=>{const l=x.toLowerCase();if(l.includes('approval')||l.includes('approve'))approval.push(x);else if(l.includes('pending')||l.includes('tomorrow')||l.includes('follow up'))pending.push(x);else if(l.includes('issue')||l.includes('attention')||l.includes('problem'))attention.push(x);else executed.push(x)})}show('closureOut',`📣📣📣📣📣📣📣📣\n*Vertical Head Evening closure message*\n\nDate: ${today()}\nName: ${s.name}\n\n*Work Executed during the day*\n${executed.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. No additional work recorded.'}\n\n*Assignments send for approval*\n${approval.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}\n\n*Pending works in hand with plan of action*\n${pending.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}\n\n📣📣📣📣📣📣📣📣\n*Matters require Operations Coordinator Attention*\n${attention.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}`)}
+function renderHistory(){const e=document.getElementById('history');e.innerHTML=data.updates.length?data.updates.map(x=>`<div><b>${x.time}</b> — ${x.notes.join(' • ')}</div>`).join(''):'No updates yet.'}
+function clearDay(){if(confirm('Start a new day? This clears today’s activity log and objectives.')){data={date:today(),updates:[],objectives:[],krs:[]};save();location.reload()}}
+renderHistory();
+</script>
+</body>
+</html>
