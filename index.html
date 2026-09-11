@@ -7,10 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Daily Work Report">
 <meta name="theme-color" content="#111827">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>Daily Work Report — V5</title>
+<title>Daily Work Report — V5.1</title>
 <style>
 *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;margin:0;background:#f4f6f8;color:#1f2937;-webkit-text-size-adjust:100%}
 .wrap{max-width:980px;margin:0 auto;padding:18px 14px 40px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}h1{margin:0;font-size:25px}.sub,.tag{color:#6b7280;font-size:13px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.04)}
@@ -32,7 +29,7 @@
     <div class="tag">Enter these once each day. The live-location link appears only in the Morning Message.</div>
     <div class="grid">
       <div><label>Name</label><input id="name" value="Rishi" autocomplete="name"></div>
-      <div><label>Designation</label><input id="designation" placeholder="Enter your designation"></div>
+      <div><label>Designation</label><input id="designation" placeholder="Enter your designation" value="Audit Executive" readonly></div>
       <div><label>Branch</label><input id="branch" value="Mumbai"></div>
       <div><label>Today's Location</label><input id="dailyLocation" placeholder="e.g. Andheri East, Mumbai"></div>
       <div class="full"><label>Today's Google Maps 24-hour Live Location Link</label><input id="dailyLive" placeholder="Paste today's Google Maps Share via link here"></div>
@@ -101,9 +98,9 @@ const today=()=>new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'2-di
 if(data.date!==today()){data={date:today(),updates:[],objectives:[],krs:[]};save();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
 function v(id){const e=document.getElementById(id);return e?e.value.trim():''}
-function settings(){return{name:v('name')||'Rishi',designation:v('designation'),branch:v('branch')||'Mumbai',location:v('dailyLocation')||'Mumbai',live:v('dailyLive')}}
+function settings(){return{name:v('name')||'Rishi',designation:'Audit Executive',branch:v('branch')||'Mumbai',location:v('dailyLocation')||'Mumbai',live:v('dailyLive')}}
 function saveSettings(){try{localStorage.setItem(SETTINGS,JSON.stringify(settings()));alert('Saved.');}catch(e){alert('Saved for this page session.')}}
-(function(){try{const s=JSON.parse(localStorage.getItem(SETTINGS)||'null');if(s){['name','designation','branch','dailyLocation','dailyLive'].forEach(k=>{if(s[k]!==undefined){const id=k==='dailyLocation'?'dailyLocation':k==='dailyLive'?'dailyLive':k;document.getElementById(id).value=s[k]}})}}catch(e){}})();
+(function(){try{const s=JSON.parse(localStorage.getItem(SETTINGS)||'null');if(s){['name','branch','dailyLocation','dailyLive'].forEach(k=>{if(s[k]!==undefined){const id=k==='dailyLocation'?'dailyLocation':k==='dailyLive'?'dailyLive':k;document.getElementById(id).value=s[k]}});document.getElementById('designation').value='Audit Executive'}}catch(e){}})();
 function show(id,text){const e=document.getElementById(id);e.textContent=text;e.hidden=false;const a=document.getElementById(id.replace('Out','Actions'));if(a)a.hidden=false}
 function copyFallback(text){const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);let ok=false;try{ok=document.execCommand('copy')}catch(e){}document.body.removeChild(ta);return ok}
 async function copyOut(id){const text=document.getElementById(id).textContent;let ok=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);ok=true}}catch(e){}if(!ok)ok=copyFallback(text);if(ok)alert('Copied. Paste it into WhatsApp.');else alert('Copy was blocked by this browser. The message is selectable below — long-press (iPhone/Android) or select and copy (ThinkPad).')}
@@ -111,12 +108,7 @@ async function shareOut(id){const text=document.getElementById(id).textContent;t
 function generateMorning(){const s=settings(),now=new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});show('morningOut',`☀☀☀☀☀☀☀\nMorning Message\nName:- ${s.name}\nLocation:- ${s.location}\nDate:- ${today()}\nEntry Time:- ${now}${s.live?`\nLive Location:- ${s.live}`:''}`)}
 function generateOKR(){const o=[v('obj1'),v('obj2')].filter(Boolean),k=[v('kr1'),v('kr2')].filter(Boolean),s=settings();data.objectives=o;data.krs=k;save();show('okrOut',`OKR (Objectives and Key Results) Report\n\nDate: ${today()}\nName: ${s.name}\nDesignation: ${s.designation}\nBranch: ${s.branch}\n🪁🪁🪁🪁🪁🪁🪁🪁🪁🪁\nMy work today is to achieve the following\n\n${o.map((x,i)=>`${i+1}. ${x}`).join('\n')}\n\n🪂🪂🪂🪂🪂🪂🪂🪂🪂🪂🪂\nToday My Key results will be\n\n${k.map((x,i)=>`${i+1}. ${x}`).join('\n')}`)}
 function setTime(t){document.getElementById('forcedTime').value=t}
-function generateUpdate(){const notes=v('updateNotes');if(!notes){alert('Enter what you actually worked on first.');return}const s=settings(),tm=v('forcedTime')||new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}),items=notes.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean);data.updates.push({time:tm,notes:items});save();if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-}
-renderHistory();show('updateOut',`♣♣♣♣♣♣\n2 Hour Update\n\nDate: ${today()}\nLocation: ${s.location}\nTime: ${tm}\nName: ${s.name}\nWork Executed:\n\n${items.map((x,i)=>`${i+1}. ${x}`).join('\n')}`);document.getElementById('updateNotes').value=''}
+function generateUpdate(){const notes=v('updateNotes');if(!notes){alert('Enter what you actually worked on first.');return}const s=settings(),tm=v('forcedTime')||new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}),items=notes.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean);data.updates.push({time:tm,notes:items});save();renderHistory();show('updateOut',`♣♣♣♣♣♣\n2 Hour Update\n\nDate: ${today()}\nLocation: ${s.location}\nTime: ${tm}\nName: ${s.name}\nWork Executed:\n\n${items.map((x,i)=>`${i+1}. ${x}`).join('\n')}`);document.getElementById('updateNotes').value=''}
 function generateClosure(){const s=settings(),all=data.updates.flatMap(x=>x.notes),extra=v('closureNotes'),executed=all.length?all:[...data.objectives],approval=[],pending=[],attention=[];if(extra){extra.split(/\n|[.;]+/).map(x=>x.trim()).filter(Boolean).forEach(x=>{const l=x.toLowerCase();if(l.includes('approval')||l.includes('approve'))approval.push(x);else if(l.includes('pending')||l.includes('tomorrow')||l.includes('follow up'))pending.push(x);else if(l.includes('issue')||l.includes('attention')||l.includes('problem'))attention.push(x);else executed.push(x)})}show('closureOut',`📣📣📣📣📣📣📣📣\n*Vertical Head Evening closure message*\n\nDate: ${today()}\nName: ${s.name}\n\n*Work Executed during the day*\n${executed.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. No additional work recorded.'}\n\n*Assignments send for approval*\n${approval.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}\n\n*Pending works in hand with plan of action*\n${pending.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}\n\n📣📣📣📣📣📣📣📣\n*Matters require Operations Coordinator Attention*\n${attention.map((x,i)=>`${i+1}. ${x}`).join('\n')||'1. Nil'}`)}
 function renderHistory(){const e=document.getElementById('history');e.innerHTML=data.updates.length?data.updates.map(x=>`<div><b>${x.time}</b> — ${x.notes.join(' • ')}</div>`).join(''):'No updates yet.'}
 function clearDay(){if(confirm('Start a new day? This clears today’s activity log and objectives.')){data={date:today(),updates:[],objectives:[],krs:[]};save();location.reload()}}
